@@ -1,0 +1,25 @@
+# action.yaml
+name: 'KubeOne GitHub Action'
+description: 'Use KubeOne with easy from GH Actions'
+inputs:
+  version:
+    description: 'Version of KubeOne to use'
+    required: false
+    default: "v1.3.2"
+runs:
+  using: 'composite'
+  steps:
+    - run: |
+        git clone https://github.com/kubermatic/kubeone.git
+          cd kubeone
+          git checkout $INPUT_VERSION
+          go build \
+            -ldflags "\
+            -s -w \
+            -X k8c.io/kubeone/pkg/cmd.version=`git describe --tags` \
+            -X k8c.io/kubeone/pkg/cmd.commit=`git rev-parse HEAD` \
+            -X k8c.io/kubeone/pkg/cmd.date=`date +%FT%T%z` \
+            "\
+            -o kubeone \
+            main.go
+          cp kubeone /usr/local/bin/kubeone
