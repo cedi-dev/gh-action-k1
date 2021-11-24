@@ -23,3 +23,4 @@ runs:
             -o kubeone \
             main.go
           cp kubeone /usr/local/bin/kubeone
+      shell: bash
