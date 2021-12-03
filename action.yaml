@@ -58,7 +58,6 @@ runs:
           git checkout ${{ inputs.version }}
           go build \
             -ldflags "\
-            -s -w \
             -X k8c.io/kubeone/pkg/cmd.version=`git describe --tags` \
             -X k8c.io/kubeone/pkg/cmd.commit=`git rev-parse HEAD` \
             -X k8c.io/kubeone/pkg/cmd.date=`date +%FT%T%z` \
