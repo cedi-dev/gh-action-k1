@@ -69,11 +69,11 @@ runs:
     - name: Execute KubeOne
       id: command
       run: |
-        kubeone $INPUT_COMMAND \
+        echo "kubeone $INPUT_COMMAND \
           --manifest $INPUT_MANIFEST \
           --credentials $INPUT_CREDENTIALS \
           --tfjson $INPUT_TFJSON \
-          $INPUT_ARGS
+          $INPUT_ARGS"
       shell: bash
 
     # and collect the version number
