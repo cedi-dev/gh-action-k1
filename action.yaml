@@ -2,10 +2,40 @@
 name: 'KubeOne GitHub Action'
 description: 'Use KubeOne with easy from GH Actions'
 inputs:
+  command:
+    description: 'the command (status|apply|kubectl|version|...) to run with kubeone'
+    required: true
+
+  args:
+    description: 'extra args to pass to KubeOne'
+    required: false
+    default: ""
+
+  tfjson:
+    description: 'the path to the terraform json output file'
+    required: false
+    default: "./output.json"
+
+  manifest:
+    description: 'the path to the kubeone.yaml file'
+    required: false
+    default: "./kubeone.yaml"
+
+  credentials:
+    description: 'the path to the credentials.yaml file'
+    required: false
+    default: "./credentials.yaml"
+
   version:
     description: 'Version of KubeOne to use'
     required: false
     default: "v1.3.2"
+
+outputs:
+  version:
+    description: "The installed KubeOne version"
+    value: ${{ steps.version.outputs.value }}
+
 runs:
   using: 'composite'
   steps:
@@ -14,18 +44,41 @@ runs:
       with:
         go-version: 1.17
 
-    - run: |
-        git clone https://github.com/kubermatic/kubeone.git
-          cd kubeone
-          git checkout $INPUT_VERSION
-          go build \
-            -ldflags "\
-            -s -w \
-            -X k8c.io/kubeone/pkg/cmd.version=`git describe --tags` \
-            -X k8c.io/kubeone/pkg/cmd.commit=`git rev-parse HEAD` \
-            -X k8c.io/kubeone/pkg/cmd.date=`date +%FT%T%z` \
-            "\
-            -o kubeone \
-            main.go
-          cp kubeone /usr/local/bin/kubeone
+    # only Install KubeOne if its not present
+    - name: Install KubeOne
+      run: |
+        if ! command -v kubeone &> /dev/null
+        then
+          git clone https://github.com/kubermatic/kubeone.git
+            cd kubeone
+            git checkout $INPUT_VERSION
+            go build \
+              -ldflags "\
+              -s -w \
+              -X k8c.io/kubeone/pkg/cmd.version=`git describe --tags` \
+              -X k8c.io/kubeone/pkg/cmd.commit=`git rev-parse HEAD` \
+              -X k8c.io/kubeone/pkg/cmd.date=`date +%FT%T%z` \
+              "\
+              -o kubeone \
+              main.go
+            cp kubeone /usr/local/bin/kubeone
+        fi
       shell: bash
+
+    # execute KubeOne
+    - name: Execute KubeOne
+      id: command
+      run: |
+        kubeone $INPUT_COMMAND \
+          --manifest $INPUT_MANIFEST \
+          --credentials $INPUT_CREDENTIALS \
+          --tfjson $INPUT_TFJSON \
+          $INPUT_ARGS
+      shell: bash
+
+    # and collect the version number
+    - name: Extract version from Kubeone
+      uses: sergeysova/jq-action@v2
+      id: version
+      with:
+        cmd: "kubeone version | jq '.kubeone.gitVersion' -r"
