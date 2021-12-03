@@ -44,36 +44,40 @@ runs:
       with:
         go-version: 1.17
 
+    - name: Test if KubeOne is present
+      shell: bash
+      id: test
+      run: $(command -v kubeone &> /dev/null) && echo "present" || echo "not present"
+
     # only Install KubeOne if its not present
     - name: Install KubeOne
+      if: steps.test.output != 'present'
       run: |
-        if ! command -v kubeone &> /dev/null
-        then
-          git clone https://github.com/kubermatic/kubeone.git
-            cd kubeone
-            git checkout $INPUT_VERSION
-            go build \
-              -ldflags "\
-              -s -w \
-              -X k8c.io/kubeone/pkg/cmd.version=`git describe --tags` \
-              -X k8c.io/kubeone/pkg/cmd.commit=`git rev-parse HEAD` \
-              -X k8c.io/kubeone/pkg/cmd.date=`date +%FT%T%z` \
-              "\
-              -o kubeone \
-              main.go
-            cp kubeone /usr/local/bin/kubeone
-        fi
+        git clone https://github.com/kubermatic/kubeone.git
+          cd kubeone
+          git checkout ${{ inputs.version }}
+          go build \
+            -ldflags "\
+            -s -w \
+            -X k8c.io/kubeone/pkg/cmd.version=`git describe --tags` \
+            -X k8c.io/kubeone/pkg/cmd.commit=`git rev-parse HEAD` \
+            -X k8c.io/kubeone/pkg/cmd.date=`date +%FT%T%z` \
+            "\
+            -o kubeone \
+            main.go
+          cp kubeone /usr/local/bin/kubeone
       shell: bash
 
     # execute KubeOne
     - name: Execute KubeOne
       id: command
       run: |
-        echo "kubeone $INPUT_COMMAND \
-          --manifest $INPUT_MANIFEST \
-          --credentials $INPUT_CREDENTIALS \
-          --tfjson $INPUT_TFJSON \
-          $INPUT_ARGS"
+        echo "kubeone ${{ inputs.command }}  \
+          --manifest ${{ inputs.manifest }}  \
+          --credentials ${{ inputs.credentials }}  \
+          --tfjson ${{ inputs.tfjson }}  \
+          ${{ inputs.args }}
+          "
       shell: bash
 
     # and collect the version number
