@@ -13,9 +13,14 @@ jobs:
       matrix:
         version: ["v1.3.2", "master", "v1.0.0"]
     steps:
-      - name: Setup Kubeone
+      - name: Kubeone
+        id: kubeone
         uses: cedi/gh-action-kubeone@main
         with:
           version: ${{ matrix.version }}
           command: version
+
+      - name: Print version
+        shell: bash
+        run: echo "KubeOne Version is ${{ steps.kubeone.outputs.version }}"
 
