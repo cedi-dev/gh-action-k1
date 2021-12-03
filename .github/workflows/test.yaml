@@ -24,3 +24,21 @@ jobs:
         shell: bash
         run: echo "KubeOne Version is ${{ steps.kubeone.outputs.version }}"
 
+  test2:
+    name: "Test KubeOne"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kubeone
+        id: kubeone
+        uses: cedi/gh-action-kubeone@main
+        with:
+          command: version
+
+      - name: Kubeone 2nd time
+        uses: cedi/gh-action-kubeone@main
+        with:
+          command: version
+
+      - name: Print version
+        shell: bash
+        run: echo "KubeOne Version is ${{ steps.kubeone.outputs.version }}"

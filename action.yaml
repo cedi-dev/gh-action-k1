@@ -47,11 +47,17 @@ runs:
     - name: Test if KubeOne is present
       shell: bash
       id: test
-      run: $(command -v kubeone &> /dev/null) && echo "present" || echo "not present"
+      run: |
+        if $(command -v kubeone &> /dev/null)
+        then
+          echo "::set-output name=present::present"
+        else
+          echo "not present"
+        fi
 
     # only Install KubeOne if its not present
     - name: Install KubeOne
-      if: steps.test.output != 'present'
+      if: steps.test.outputs.present != 'present'
       shell: bash
       run: |
         git clone https://github.com/kubermatic/kubeone.git
