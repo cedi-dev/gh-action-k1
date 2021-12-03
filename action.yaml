@@ -52,6 +52,7 @@ runs:
     # only Install KubeOne if its not present
     - name: Install KubeOne
       if: steps.test.output != 'present'
+      shell: bash
       run: |
         git clone https://github.com/kubermatic/kubeone.git
           cd kubeone
@@ -65,11 +66,11 @@ runs:
             -o kubeone \
             main.go
           cp kubeone /usr/local/bin/kubeone
-      shell: bash
 
     # execute KubeOne
     - name: Execute KubeOne
       id: command
+      shell: bash
       run: |
         echo "kubeone ${{ inputs.command }}  \
           --manifest ${{ inputs.manifest }}  \
@@ -77,11 +78,15 @@ runs:
           --tfjson ${{ inputs.tfjson }}  \
           ${{ inputs.args }}
           "
+
+    - name: Execute KubeOne
+      id: getVersion
       shell: bash
+      run: kubeone version > version.json
 
     # and collect the version number
     - name: Extract version from Kubeone
       uses: sergeysova/jq-action@v2
       id: version
       with:
-        cmd: "kubeone version | jq '.kubeone.gitVersion' -r"
+        cmd: "jq -r '.kubeone.gitVersion' version.json"
