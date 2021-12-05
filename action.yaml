@@ -84,12 +84,10 @@ runs:
           --tfjson ${{ inputs.tfjson }}  \
           ${{ inputs.args }}
 
-    - name: Install jq
-      shell: bash
-      run: sudo apt-get install -y jq
-
     # and collect the version number
     - name: Extract version from Kubeone
       id: version
       shell: bash
-      run: echo "::set-output name=version::$(kubeone version | jq -r '.kubeone.gitVersion')"
+      run: |
+        sudo apt-get install -y jq > /dev/null
+        echo "::set-output name=version::$(kubeone version | jq -r '.kubeone.gitVersion')"
