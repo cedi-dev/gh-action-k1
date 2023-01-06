@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: ["v1.3.2", "master", "v1.0.0"]
+        version: ["v1.5.4", "main", "v1.0.0"]
     steps:
       - name: Kubeone
         id: kubeone
